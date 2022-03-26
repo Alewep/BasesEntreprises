@@ -24,6 +24,7 @@ def hexa_from_int(integer):
 def get_path_file(var: tk.StringVar):
     e1.config(state=tk.NORMAL)
     e2.config(state=tk.NORMAL)
+    old = var.get()
     try:
         filename = filedialog.askopenfilename(initialdir=".",
                                               title="Select a File",
@@ -54,10 +55,11 @@ def get_path_file(var: tk.StringVar):
 
     except Exception as e:
         print(e)
-        var.set("")
+        var.set(old)
         messagebox.showerror("Fichier incorrecte", "Vous avez saisie un fichier qui est dans un format incomptatible")
 
     finally:
+
         e1.config(state=tk.DISABLED)
         e2.config(state=tk.DISABLED)
 
@@ -65,6 +67,7 @@ def get_path_file(var: tk.StringVar):
 def get_path_folder(var: tk.StringVar):
     e1.config(state=tk.NORMAL)
     e2.config(state=tk.NORMAL)
+    old = var.get()
     try:
         filename = filedialog.askdirectory(initialdir=".",
                                            title="Select a Directory")
@@ -79,7 +82,7 @@ def get_path_folder(var: tk.StringVar):
             display_cost()
     except Exception as e:
         print(e)
-        var.set("")
+        var.set(old)
         messagebox.showerror("Dossier incorrecte", "Votre dossier contient des fichiers d'un format incompatible")
     finally:
         e1.config(state=tk.DISABLED)
