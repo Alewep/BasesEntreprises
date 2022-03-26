@@ -53,6 +53,7 @@ def get_path_file(var: tk.StringVar):
             e1.insert("0.1", "\n".join(bases))
 
     except Exception as e:
+        print(e)
         var.set("")
         messagebox.showerror("Fichier incorrecte", "Vous avez saisie un fichier qui est dans un format incomptatible")
 
@@ -77,6 +78,7 @@ def get_path_folder(var: tk.StringVar):
             all_bases.extend(parsing.all_bases(path_list_bases.get(), path_folder_bases.get()))
             display_cost()
     except Exception as e:
+        print(e)
         var.set("")
         messagebox.showerror("Dossier incorrecte", "Votre dossier contient des fichiers d'un format incompatible")
     finally:
