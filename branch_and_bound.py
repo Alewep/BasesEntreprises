@@ -39,11 +39,13 @@ class Node:
 
 
 def branch_and_bound(bases: List[Base], entreprises: List[str], heuristique: Callable[[Base, List[str]], Any],
-                     best=0,sort_heuristique=True):
+                     best=0, sort_heuristique=True):
     best_node = None
     if best is not None:
         best = glouton(bases, entreprises, heuristique)[1]
-    else :
+        if best is None:
+            return None, None, None
+    else:
         best = math.inf
 
     root = Node()
@@ -57,7 +59,7 @@ def branch_and_bound(bases: List[Base], entreprises: List[str], heuristique: Cal
             sons = current_node.get_sons(bases, entreprises)
 
             if sons:
-                if sort_heuristique :
+                if sort_heuristique:
                     sons.sort(key=lambda n: heuristique(n.solution[-1], entreprises))
                 solutions = solutions + sons
             else:

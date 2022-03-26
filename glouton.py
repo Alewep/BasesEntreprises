@@ -2,7 +2,7 @@ from typing import List, Tuple, Callable, Any
 from parsing import Base
 
 
-def glouton(all_bases: List[Base], entreprises: List[str], heuristique: Callable[[Base, List[str]], Any]) :
+def glouton(all_bases: List[Base], entreprises: List[str], heuristique: Callable[[Base, List[str]], Any]):
     all_bases = all_bases[:]
     entreprises = entreprises[:]
 
@@ -11,6 +11,9 @@ def glouton(all_bases: List[Base], entreprises: List[str], heuristique: Callable
     iteration = 0
 
     while entreprises:
+        if not all_bases:
+            return None, None, None
+
         iteration += 1
         all_bases.sort(key=lambda x: heuristique(x, entreprises))
         first = min(all_bases, key=lambda x: heuristique(x, entreprises))
@@ -21,4 +24,4 @@ def glouton(all_bases: List[Base], entreprises: List[str], heuristique: Callable
         resultat.append(first)
         total_cost += first.cost
 
-    return resultat, total_cost,iteration
+    return resultat, total_cost, iteration

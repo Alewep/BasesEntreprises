@@ -1,7 +1,7 @@
 import os
 import time
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 import branch_and_bound
 import glouton
@@ -22,51 +22,70 @@ def hexa_from_int(integer):
 
 
 def get_path_file(var: tk.StringVar):
-    filename = filedialog.askopenfilename(initialdir=".",
-                                          title="Select a File",
-                                          filetypes=(("Text files",
-                                                      "*.txt*"),
-                                                     ("all files",
-                                                      "*.*")))
-    if filename == ():
-        return
+    e1.config(state=tk.NORMAL)
+    e2.config(state=tk.NORMAL)
+    try:
+        filename = filedialog.askopenfilename(initialdir=".",
+                                              title="Select a File",
+                                              filetypes=(("Text files",
+                                                          "*.txt*"),
+                                                         ("all files",
+                                                          "*.*")))
+        if filename == ():
+            return
 
-    var.set(os.path.relpath(filename))
+        var.set(os.path.relpath(filename))
+        if path_list_bases.get() != "" and path_folder_bases.get() != "":
+            all_bases.clear()
+            all_bases.extend(parsing.all_bases(path_list_bases.get(), path_folder_bases.get()))
+            display_cost()
 
-    if path_list_bases.get() != "" and path_folder_bases.get() != "":
-        all_bases.clear()
-        all_bases.extend(parsing.all_bases(path_list_bases.get(), path_folder_bases.get()))
-        display_cost()
+        if path_list_entreprises.get() != "":
+            entreprises.clear()
+            entreprises.extend(parsing.liste(path_list_entreprises.get()))
+            e2.delete("1.0", "end")
+            e2.insert("0.1", "\n".join(entreprises))
 
-    if path_list_entreprises.get() != "":
-        entreprises.clear()
-        entreprises.extend(parsing.liste(path_list_entreprises.get()))
-        e2.delete("1.0", "end")
-        e2.insert("0.1", "\n".join(entreprises))
+        if path_list_bases.get() != "" and path_folder_bases.get() == "":
+            bases.clear()
+            bases.extend(parsing.liste(path_list_bases.get()))
+            e1.delete("1.0", "end")
+            e1.insert("0.1", "\n".join(bases))
 
-    if path_list_bases.get() != "":
-        bases.clear()
-        bases.extend(parsing.liste(path_list_bases.get()))
-        e1.delete("1.0", "end")
-        e1.insert("0.1", "\n".join(bases))
+    except Exception as e:
+        var.set("")
+        messagebox.showerror("Fichier incorrecte", "Vous avez saisie un fichier qui est dans un format incomptatible")
+
+    finally:
+        e1.config(state=tk.DISABLED)
+        e2.config(state=tk.DISABLED)
 
 
 def get_path_folder(var: tk.StringVar):
-    filename = filedialog.askdirectory(initialdir=".",
-                                       title="Select a Directory")
-    if filename == ():
-        return
+    e1.config(state=tk.NORMAL)
+    e2.config(state=tk.NORMAL)
+    try:
+        filename = filedialog.askdirectory(initialdir=".",
+                                           title="Select a Directory")
+        if filename == ():
+            return
 
-    var.set(os.path.relpath(filename))
-
-    if path_list_bases.get() != "" and path_folder_bases.get() != "":
-        all_bases.clear()
-        all_bases.extend(parsing.all_bases(path_list_bases.get(), path_folder_bases.get()))
-        display_cost()
+        var.set(os.path.relpath(filename))
+        print(path_list_bases.get() != "" and path_folder_bases.get() != "")
+        if path_list_bases.get() != "" and path_folder_bases.get() != "":
+            all_bases.clear()
+            all_bases.extend(parsing.all_bases(path_list_bases.get(), path_folder_bases.get()))
+            display_cost()
+    except Exception as e:
+        var.set("")
+        messagebox.showerror("Dossier incorrecte", "Votre dossier contient des fichiers d'un format incompatible")
+    finally:
+        e1.config(state=tk.DISABLED)
+        e2.config(state=tk.DISABLED)
 
 
 def display_cost():
-    all_bases_map = map(lambda x: x.name + " " + str(x.cost), all_bases)
+    all_bases_map = list(map(lambda x: x.name + " " + str(x.cost), all_bases))
     e1.delete("1.0", "end")
     e1.insert("0.1", "\n".join(all_bases_map))
 
@@ -75,23 +94,26 @@ def method():
     start = 0
     end = 0
     i = 0
+    bl, c, i = None, None, None
     if m.get() == "glouton":
         start = time.time()
         bl, c, i = glouton.glouton(all_bases, entreprises, getattr(heuristique, h.get()))
         end = time.time() - start
-        resultat_bases.clear()
-        resultat_bases.extend(bl)
-        cout_resultat.set(c)
 
     elif m.get() == "branch_and_bound":
         start = time.time()
         bl, c, i = branch_and_bound.branch_and_bound(all_bases, entreprises, getattr(heuristique, h.get()))
         end = time.time() - start
-        resultat_bases.clear()
-        resultat_bases.extend(bl)
-        cout_resultat.set(c)
-    perf.set(f"Temp={end},iterations={i}")
 
+    if bl is None:
+        messagebox.showinfo("Pas de solution", "Vérifier que vos fichiers sont correctes")
+        return
+
+    resultat_bases.clear()
+    resultat_bases.extend(bl)
+    cout_resultat.set(f"Coût: {c}")
+
+    perf.set(f"Temp={end},iterations={i}")
 
     highlighter()
 
@@ -114,12 +136,13 @@ def highlighter():
 
         e2.tag_config("select_bases" + str(line), background=hexa_from_int(line))
 
-
 gui = tk.Tk()
+gui.title("Optimisation Combinatoire")
+gui.geometry("{}x{}".format(gui.winfo_screenwidth(), gui.winfo_screenheight()))
 path_list_bases = tk.StringVar()
 path_list_entreprises = tk.StringVar()
 path_folder_bases = tk.StringVar()
-cout_resultat = tk.IntVar()
+cout_resultat = tk.StringVar()
 perf = tk.StringVar()
 
 resultat_bases = []
@@ -150,7 +173,6 @@ ht = tk.Label(text="Choisir une heuristique")
 h = ttk.Combobox(gui, values=dir(heuristique)[10:-1])
 h.current(0)
 
-
 mt = tk.Label(text="Choisir une methode")
 m = ttk.Combobox(gui, values=["glouton", "branch_and_bound"])
 m.current(0)
@@ -179,6 +201,8 @@ e2.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
 e2.delete("1.0", "end")
 e2.insert("0.1", "\n".join(entreprises))
 display_cost()
+e1.config(state=tk.DISABLED)
+e2.config(state=tk.DISABLED)
 
 v.grid(row=4, column=2, rowspan=2)
 
